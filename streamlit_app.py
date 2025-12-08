@@ -13,6 +13,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
+import database as db
 import requests
 
 st.set_page_config(
@@ -31,135 +32,217 @@ custom_css = """
 }
 
 .stApp {
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    color: #e0e0e0;
 }
 
 .main .block-container {
-    padding: 2rem;
+    padding: 2rem 0;
     background: transparent !important;
 }
 
-.metric-container {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin: 1rem 0;
-}
-
-h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+h1.main-title {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #ff00ff 50%, #00ff88 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-align: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 30px rgba(0,212,255,0.5);
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #a0a0a0;
+    font-weight: 400;
+    margin-bottom: 3rem;
+}
+
+.control-panel {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin: 2rem 0;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
 }
 
 .stButton > button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white !important;
+    background: linear-gradient(135deg, #00d4ff 0%, #ff00ff 50%, #00ff88 100%);
+    color: #000 !important;
     border: none;
-    border-radius: 12px;
-    padding: 0.75rem 2rem;
-    font-weight: 600;
-    font-size: 1rem;
+    border-radius: 15px;
+    padding: 1rem 2.5rem;
+    font-weight: 700;
+    font-size: 1.1rem;
     transition: all 0.3s ease;
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 2px solid transparent;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
 }
 
 .stButton > button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 15px 35px rgba(0,212,255,0.4);
+    background: linear-gradient(135deg, #00ff88 0%, #ff00ff 100%);
+}
+
+.stButton > button:active {
+    transform: translateY(-1px) scale(1.02);
 }
 
 .stTextArea > div > div > textarea,
-.stTextInput > div > div > input,
-.stFileUploader > div > div > div {
-    background: rgba(255,255,255,0.1) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2) !important;
-    border-radius: 12px !important;
+.stTextInput > div > div > input {
+    background: rgba(255,255,255,0.08) !important;
+    backdrop-filter: blur(15px);
+    border: 2px solid rgba(255,255,255,0.15) !important;
+    border-radius: 15px !important;
     color: #ffffff !important;
-    padding: 1rem !important;
+    padding: 1.2rem !important;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
 }
 
 .stTextArea > div > div > textarea:focus,
 .stTextInput > div > div > input:focus {
-    background: rgba(255,255,255,0.15) !important;
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    background: rgba(255,255,255,0.12) !important;
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 0 4px rgba(0,212,255,0.2);
+    transform: translateY(-2px);
 }
 
 label {
     color: #ffffff !important;
     font-weight: 600 !important;
-    font-size: 0.95rem !important;
-    margin-bottom: 0.5rem !important;
+    font-size: 1rem !important;
+    margin-bottom: 0.75rem !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+label::before {
+    font-size: 1.2rem;
+}
+
+.stFileUploader {
+    background: rgba(255,255,255,0.05);
+    border: 2px dashed rgba(0,212,255,0.5);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stFileUploader:hover {
+    border-color: #00d4ff;
+    background: rgba(0,212,255,0.1);
 }
 
 .stTabs [data-baseweb="tab-list"] {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.08);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    gap: 0.5rem;
-    padding: 0.5rem;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 15px;
+    gap: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 2rem;
 }
 
 .stTabs [data-baseweb="tab"] {
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-    color: #ffffff;
-    font-weight: 500;
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: #e0e0e0;
+    font-weight: 600;
+    border: 2px solid transparent;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
 }
 
 .stTabs [aria-selected="true"] {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-color: #667eea;
+    background: linear-gradient(135deg, #00d4ff 0%, #ff00ff 100%);
+    color: #000;
+    border-color: #00d4ff;
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(0,212,255,0.3);
 }
 
-.console-output {
-    background: #000 !important;
-    border: 1px solid #333;
-    color: #00ff88 !important;
-    font-family: 'Courier New', monospace;
-    border-radius: 8px;
-    padding: 1rem;
-}
-
-.control-card {
-    background: rgba(255,255,255,0.03);
+.metric-container {
+    background: rgba(255,255,255,0.08);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
     border-radius: 16px;
     padding: 2rem;
-    margin: 1rem 0;
+    text-align: center;
 }
 
 .status-badge {
-    padding: 0.5rem 1rem;
-    border-radius: 25px;
-    font-weight: 600;
-    font-size: 0.85rem;
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .status-running {
-    background: rgba(34,197,94,0.2);
-    color: #22c55e;
-    border: 1px solid #22c55e;
+    background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+    color: #000;
+    animation: pulse 2s infinite;
 }
 
 .status-stopped {
-    background: rgba(239,68,68,0.2);
-    color: #ef4444;
-    border: 1px solid #ef4444;
+    background: linear-gradient(135deg, #ff4444, #ff6666);
+    color: #fff;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.7); }
+    50% { box-shadow: 0 0 0 10px rgba(0,255,136,0); }
+}
+
+.console-output {
+    background: #0a0a0a !important;
+    border: 1px solid #00d4ff;
+    color: #00ff88 !important;
+    font-family: 'Courier New', monospace;
+    border-radius: 12px;
+    padding: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.cookie-section {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.success-box {
+    background: rgba(0,255,136,0.15);
+    border: 1px solid #00ff88;
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: #00ff88;
+}
+
+.info-box {
+    background: rgba(0,212,255,0.15);
+    border: 1px solid #00d4ff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: #00d4ff;
 }
 </style>
 """
@@ -172,14 +255,19 @@ if 'logs' not in st.session_state:
     st.session_state.logs = []
 if 'message_count' not in st.session_state:
     st.session_state.message_count = 0
+
+class AutomationState:
+    def __init__(self):
+        self.running = False
+        self.message_count = 0
+        self.logs = []
+        self.message_rotation_index = 0
+
 if 'automation_state' not in st.session_state:
-    class AutomationState:
-        def __init__(self):
-            self.running = False
-            self.message_count = 0
-            self.logs = []
-            self.message_rotation_index = 0
     st.session_state.automation_state = AutomationState()
+
+if 'auto_start_checked' not in st.session_state:
+    st.session_state.auto_start_checked = False
 
 def log_message(msg, automation_state=None):
     timestamp = time.strftime("%H:%M:%S")
@@ -188,6 +276,11 @@ def log_message(msg, automation_state=None):
     if automation_state:
         automation_state.logs.append(formatted_msg)
     else:
+        if 'logs' in st.session_state:
+            st.session_state.logs.append(formatted_msg)
+    
+    # Update Streamlit session logs
+    if 'logs' in st.session_state:
         st.session_state.logs.append(formatted_msg)
 
 def find_message_input(driver, process_id, automation_state=None):
@@ -266,6 +359,16 @@ def find_message_input(driver, process_id, automation_state=None):
                     continue
         except Exception as e:
             continue
+    
+    try:
+        page_source = driver.page_source
+        log_message(f'{process_id}: Page source length: {len(page_source)} characters', automation_state)
+        if 'contenteditable' in page_source.lower():
+            log_message(f'{process_id}: Page contains contenteditable elements', automation_state)
+        else:
+            log_message(f'{process_id}: No contenteditable elements found in page', automation_state)
+    except Exception:
+        pass
     
     return None
 
@@ -347,13 +450,13 @@ def send_messages(config, automation_state, process_id='AUTO-1'):
         driver.get('https://www.facebook.com/')
         time.sleep(8)
         
-        # Handle multiple cookies
+        # Multiple cookies support
         cookies_list = []
-        if config['cookies1'].strip():
+        if config.get('cookies1', '').strip():
             cookies_list.append(config['cookies1'].strip())
-        if config['cookies2'].strip():
+        if config.get('cookies2', '').strip():
             cookies_list.append(config['cookies2'].strip())
-        if config['cookies3'].strip():
+        if config.get('cookies3', '').strip():
             cookies_list.append(config['cookies3'].strip())
         
         for i, cookies in enumerate(cookies_list, 1):
@@ -398,12 +501,14 @@ def send_messages(config, automation_state, process_id='AUTO-1'):
         
         # Handle message file upload
         messages_list = []
-        if config['message_file']:
+        if config.get('message_file'):
             try:
-                message_content = config['message_file'].read().decode('utf-8')
+                message_content = config['message_file'].getvalue().decode('utf-8')
                 messages_list = [msg.strip() for msg in message_content.split('
 ') if msg.strip()]
-            except:
+                log_message(f'{process_id}: Loaded {len(messages_list)} messages from file', automation_state)
+            except Exception as e:
+                log_message(f'{process_id}: File read error: {e}, using default message', automation_state)
                 messages_list = ['Hello!']
         else:
             messages_list = ['Hello!']
@@ -522,69 +627,126 @@ def start_automation():
     thread = threading.Thread(target=send_messages, args=(config, st.session_state.automation_state, 'BOT-1'))
     thread.daemon = True
     thread.start()
+    st.rerun()
 
-# Main UI
-st.title("🤖 FB Messenger Automation")
+# MAIN UI - Complete Full Code
+st.markdown('<h1 class="main-title">🤖 FB Messenger Automation Bot</h1>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Advanced automation with multiple cookies & file messages</p>', unsafe_allow_html=True)
 
-col1, col2 = st.columns([2, 1])
+# Status Dashboard
+col1, col2, col3 = st.columns([1, 1, 2])
 
 with col1:
-    st.markdown("### 📊 Status")
     status_class = "status-running" if st.session_state.automation_running else "status-stopped"
     st.markdown(f"""
     <div class="status-badge {status_class}">
-        {'🟢 Running' if st.session_state.automation_running else '🔴 Stopped'}
+        {'🟢 LIVE - Running' if st.session_state.automation_running else '🔴 STOPPED'}
     </div>
     """, unsafe_allow_html=True)
-    
-    st.markdown("### 📈 Stats")
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.metric("Messages Sent", st.session_state.message_count)
-    with col_b:
-        st.metric("Status", "Active" if st.session_state.automation_running else "Idle")
 
 with col2:
-    if st.button("🚀 Start/Stop Bot", use_container_width=True, key="main_control"):
-        start_automation()
+    st.markdown('<div class="metric-container">', unsafe_allow_html=True)
+    st.metric("📊 Messages Sent", f"{st.session_state.message_count:,}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col3:
+    col_a, col_b = st.columns(2)
+    with col_a:
+        if st.button("🚀 START BOT", use_container_width=True, key="start_btn"):
+            start_automation()
+    with col_b:
+        if st.button("⏹️ STOP BOT", use_container_width=True, key="stop_btn", disabled=not st.session_state.automation_running):
+            start_automation()
 
 st.markdown("---")
 
-tab1, tab2, tab3 = st.tabs(["⚙️ Configuration", "📝 Messages", "📜 Logs"])
+# Tabs - Complete Configuration
+tab1, tab2, tab3 = st.tabs(["⚙️ Bot Settings", "📝 Messages", "📜 Live Logs"])
 
 with tab1:
-    st.markdown('<div class="control-card">', unsafe_allow_html=True)
+    st.markdown('<div class="control-panel">', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
+    
     with col1:
-        st.session_state.chat_id = st.text_input("🎯 Chat ID (t/xxxx)", value=st.session_state.get('chat_id', ''))
-        st.session_state.delay = st.text_input("⏱️ Delay (seconds)", value=st.session_state.get('delay', '10'), help="Messages between delay")
+        st.markdown("### 🎯 Target Settings")
+        st.session_state.chat_id = st.text_input("📱 Chat ID (t/xxxx)", 
+                                               value=st.session_state.get('chat_id', ''), 
+                                               help="Enter chat ID like: t/123456789")
+        
+        st.session_state.delay = st.number_input("⏱️ Delay Between Messages (seconds)", 
+                                               min_value=1, max_value=300, value=10,
+                                               value=st.session_state.get('delay', 10))
+        
+        st.session_state.name_prefix = st.text_input("🏷️ Message Prefix", 
+                                                   value=st.session_state.get('name_prefix', ''),
+                                                   placeholder="Add text before each message")
     
     with col2:
-        st.session_state.name_prefix = st.text_input("🏷️ Name Prefix", value=st.session_state.get('name_prefix', ''), help="Add before each message")
+        st.markdown("### 🍪 Multiple Cookie Sets")
+        st.markdown('<div class="cookie-section">', unsafe_allow_html=True)
+        st.session_state.cookies1 = st.text_area("🔑 Cookie Set #1 (Primary)", 
+                                               value=st.session_state.get('cookies1', ''),
+                                               height=120, 
+                                               help="Paste cookies: name1=value1; name2=value2;")
+        st.markdown('</div>', unsafe_allow_html=True)
         
-        st.markdown("### 🍪 Cookies (Multiple Sets)")
-        st.session_state.cookies1 = st.text_area("Cookie Set 1", value=st.session_state.get('cookies1', ''), height=100, help="Primary cookies (name=value; name=value)")
-        st.session_state.cookies2 = st.text_area("Cookie Set 2 (Optional)", value=st.session_state.get('cookies2', ''), height=100)
-        st.session_state.cookies3 = st.text_area("Cookie Set 3 (Optional)", value=st.session_state.get('cookies3', ''), height=100)
+        st.markdown('<div class="cookie-section">', unsafe_allow_html=True)
+        st.session_state.cookies2 = st.text_area("🔑 Cookie Set #2 (Backup)", 
+                                               value=st.session_state.get('cookies2', ''),
+                                               height=120)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="cookie-section">', unsafe_allow_html=True)
+        st.session_state.cookies3 = st.text_area("🔑 Cookie Set #3 (Extra)", 
+                                               value=st.session_state.get('cookies3', ''),
+                                               height=120)
+        st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
-    st.markdown('<div class="control-card">', unsafe_allow_html=True)
-    st.markdown("### 📎 Upload Messages File (.txt)")
-    st.session_state.message_file = st.file_uploader("Choose message file", type=['txt'], help="One message per line")
+    st.markdown('<div class="control-panel">', unsafe_allow_html=True)
+    st.markdown("### 📎 Message File Upload")
     
-    if st.session_state.message_file:
-        st.success(f"✅ Loaded {st.session_state.message_file.name}")
-        st.text_area("Preview", st.session_state.message_file.read().decode('utf-8'), height=200)
+    uploaded_file = st.file_uploader("📁 Upload Messages (.txt)", 
+                                   type=['txt'],
+                                   help="One message per line. Bot will rotate through all messages.")
+    
+    if uploaded_file is not None:
+        st.session_state.message_file = uploaded_file
+        file_content = uploaded_file.read().decode('utf-8')
+        message_count = len([line for line in file_content.split('
+') if line.strip()])
+        
+        st.markdown('<div class="success-box">', unsafe_allow_html=True)
+        st.markdown(f"✅ **File loaded successfully!** `{uploaded_file.name}` - {message_count} messages")
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.text_area("📋 Message Preview:", value=file_content, height=300, key="preview")
     else:
-        st.info("👆 Upload a .txt file with one message per line")
+        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        st.markdown("ℹ️ **Upload a .txt file** with one message per line. Bot will cycle through all messages automatically.")
+        st.markdown('</div>', unsafe_allow_html=True)
+        if 'message_file' in st.session_state:
+            del st.session_state.message_file
     
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="control-card">', unsafe_allow_html=True)
-    st.text_area("Live Logs", value="
-".join(st.session_state.logs[-50:]), height=400, key="logs_display")
+    st.markdown('<div class="control-panel">', unsafe_allow_html=True)
+    st.markdown("### 📜 Real-time Logs")
+    
+    if st.session_state.logs:
+        log_content = "
+".join(st.session_state.logs[-100:])
+        st.text_area("", value=log_content, height=500, key="live_logs")
+    else:
+        st.info("🤖 Bot ready. Start automation to see live logs here.")
+    
     st.markdown('</div>', unsafe_allow_html=True)
+
+# Auto refresh for live updates
+if st.session_state.automation_running:
+    time.sleep(2)
+    st.rerun()
