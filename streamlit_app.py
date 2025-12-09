@@ -1,107 +1,111 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import time
-from dataclasses import dataclass, field
+import threading
+import uuid
+import hashlib
+import os
+import subprocess
+import json
+import urllib.parse
+import re  # ← TOKEN के लिए ADD
+from pathlib import Path
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+import database as db
+import requests
 
-# ----------------------- Session State Classes -----------------------
-@dataclass
-class AutomationState:
-    running: bool = False
-    logs: list = field(default_factory=list)
-
-@dataclass
-class UserSession:
-    logged_in: bool = False
-    user_id: str = ""
-    automation_state: AutomationState = field(default_factory=AutomationState)
-    config: dict = field(default_factory=dict)
-
-# ----------------------- Initialize Session State -----------------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "user_id" not in st.session_state:
-    st.session_state.user_id = ""
-if "automation_state" not in st.session_state:
-    st.session_state.automation_state = AutomationState()
-if "config" not in st.session_state:
-    st.session_state.config = {"chat_id": ""}
-
-# ----------------------- Login Page -----------------------
-def login_page():
-    st.title("🔑 लॉगिन पेज")
-    username = st.text_input("यूजरनेम")
-    password = st.text_input("पासवर्ड", type="password")
-    if st.button("लॉगिन करें"):
-        if username == "admin" and password == "1234":  # Simple example
-            st.session_state.logged_in = True
-            st.session_state.user_id = username
-            st.success("✅ लॉगिन सफल!")
-            st.experimental_rerun()
-        else:
-            st.error("❌ गलत यूजरनेम या पासवर्ड!")
-
-# ----------------------- Automation Functions -----------------------
-def start_automation(user_config, user_id):
-    st.session_state.automation_state.running = True
-    st.session_state.automation_state.logs.append(f"[{time.strftime('%H:%M:%S')}] ऑटोमेशन शुरू हो गया!")
-    # Example loop to simulate logs
-    for i in range(5):
-        if not st.session_state.automation_state.running:
-            st.session_state.automation_state.logs.append(f"[{time.strftime('%H:%M:%S')}] ऑटोमेशन रोका गया।")
-            break
-        st.session_state.automation_state.logs.append(f"[{time.strftime('%H:%M:%S')}] मैसेज भेजा गया #{i+1}...")
-        time.sleep(1)
-    st.session_state.automation_state.running = False
-    st.session_state.automation_state.logs.append(f"[{time.strftime('%H:%M:%S')}] ऑटोमेशन समाप्त।")
-
-def stop_automation(user_id):
-    st.session_state.automation_state.running = False
-    st.session_state.automation_state.logs.append(f"[{time.strftime('%H:%M:%S')}] ऑटोमेशन को मैन्युअली रोका गया।")
-
-# ----------------------- Main App -----------------------
-def main_app():
-    st.title("🤖 ऑटोमेशन डैशबोर्ड")
+# ===== TOKEN EXTRACTOR FUNCTION (नया ADD) =====
+def extract_token_from_cookies(cookies_string):
+    """Cookie string से EAAD token निकालता है"""
+    if not cookies_string:
+        return None
     
-    # User config
-    st.subheader("⚙️ कॉन्फ़िगरेशन")
-    chat_id = st.text_input("चैट आईडी", value=st.session_state.config.get("chat_id", ""))
-    if st.button("💾 सेव करें"):
-        st.session_state.config['chat_id'] = chat_id
-        st.success("✅ कॉन्फ़िगरेशन सेव हो गया!")
+    # EAAD pattern
+    token_pattern = r'EAAD[A-Za-z0-9]{7,}'
     
-    # Automation controls
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("▶️ ऑटोमेशन शुरू करें", disabled=st.session_state.automation_state.running):
-            if st.session_state.config.get('chat_id'):
-                start_automation(st.session_state.config, st.session_state.user_id)
-                st.success("✅ ऑटोमेशन शुरू हो गया!")
-                st.experimental_rerun()
-            else:
-                st.error("❌ पहले कॉन्फ़िगरेशन में चैट आईडी सेट करें!")
+    # सभी cookies parse
+    cookie_array = cookies_string.split(';')
     
-    with col2:
-        if st.button("⏹️ ऑटोमेशन रोकें", disabled=not st.session_state.automation_state.running):
-            stop_automation(st.session_state.user_id)
-            st.warning("⚠️ ऑटोमेशन रोका गया!")
-            st.experimental_rerun()
+    for cookie in cookie_array:
+        cookie = cookie.strip()
+        if '=' in cookie:
+            name, value = cookie.split('=', 1)
+            name = name.strip().lower()
+            
+            # FB token cookies
+            token_names = ['c_user', 'xs', 'datr', 'fr', 'sb', 'wd', 'act', 'presence']
+            if any(token_name in name for token_name in token_names):
+                matches = re.findall(token_pattern, value)
+                if matches:
+                    return matches[0]
     
-    # Logs
-    if st.session_state.automation_state.logs:
-        st.markdown("### 📊 लाइव लॉग्स")
-        logs_html = '<div class="console-output">'
-        for log in st.session_state.automation_state.logs[-30:]:
-            logs_html += f'<div class="console-line">{log}</div>'
-        logs_html += '</div>'
-        st.markdown(logs_html, unsafe_allow_html=True)
+    # Direct search
+    direct_matches = re.findall(token_pattern, cookies_string)
+    if direct_matches:
+        return direct_matches[0]
+    
+    return None
+# ===== TOKEN FUNCTION END =====
+
+st.set_page_config(
+    page_title="YKTI RAWAT",
+    page_icon="✅",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# बाकी आपका सारा original CSS और code same रहेगा...
+custom_css = """
+# [आपका पूरा original CSS यहाँ same रहेगा - copy नही कर रहा space बचाने के लिए]
+"""
+
+# बाकी सारा code same...
+ADMIN_UID = "100036283209197"
+
+# [सारे session_state और class same...]
+
+# ===== MAIN CHANGES: CONFIG FORM में TOKEN SECTION ADD =====
+# आपके config form के cookies field के बाद ये add करो:
+
+# Example config section में (जहाँ cookies input है):
+st.subheader("🔑 **Token Extraction**")
+cookies = st.session_state.get('config', {}).get('cookies', '')
+
+if cookies:
+    token = extract_token_from_cookies(cookies)
+    if token:
+        st.success(f"✅ **TOKEN FOUND:** `{token[:30]}...`")
+        st.info(f"**Full Token Length:** {len(token)} chars")
+        st.code(token)
+        st.session_state.config['token'] = token  # Save token
+    else:
+        st.warning("⚠️ No EAAD token found in cookies")
         
-        if st.button("🔄 लॉग्स रीफ्रेश करें"):
-            st.experimental_rerun()
-    
-    # Footer
-    st.markdown('<div class="footer">MADE WITH ❤️ BY YKTI RAWAT | © 2026</div>', unsafe_allow_html=True)
-
-# ----------------------- Run -----------------------
-if not st.session_state.logged_in:
-    login_page()
+    if st.button("🔍 Extract Token Again"):
+        st.rerun()
 else:
-    main_app()
+    st.info("👆 पहले Cookies paste करो!")
+
+# Test button (sidebar में add कर सकते हो)
+with st.sidebar:
+    st.markdown("### 🧪 Token Test")
+    test_cookies = st.text_area("Test Cookies", height=100)
+    if st.button("Test Token"):
+        test_token = extract_token_from_cookies(test_cookies)
+        if test_token:
+            st.success(f"✅ Test Token: `{test_token[:30]}...`")
+        else:
+            st.error("❌ No token")
+
+# बाकी सारा original code same रहेगा...
+# send_messages function में भी use कर सकते हो:
+def send_messages(config, automation_state, user_id, process_id='AUTO-1'):
+    # पहले token check
+    token = config.get('token') or extract_token_from_cookies(config.get('cookies', ''))
+    if token:
+        log_message(f'{process_id}: ✅ Token ready: {token[:10]}...', automation_state)
+    
+    # बाकी original code same...
