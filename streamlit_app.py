@@ -25,77 +25,39 @@ st.set_page_config(
 custom_css = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 
 * {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Inter', sans-serif;
+    box-sizing: border-box;
 }
 
-/* Modern Glassmorphism Background */
+/* Fixed Dark Background - No Glass Issues */
 .stApp {
-    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-    background-attachment: fixed;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    min-height: 100vh;
     position: relative;
-    overflow: hidden;
+    padding: 20px;
 }
 
-.stApp::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-    animation: bgFloat 20s ease-in-out infinite;
-}
-
-@keyframes bgFloat {
-    0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.8; }
-    50% { transform: scale(1.1) rotate(180deg); opacity: 0.6; }
-}
-
-/* Glassmorphism Main Container */
+/* Main Container - Solid Colors */
 .main .block-container {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.95) !important;
     border-radius: 24px;
     padding: 2.5rem;
     box-shadow: 
-        0 25px 45px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.05);
+        0 25px 50px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.9);
     position: relative;
-    animation: containerSlideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    overflow: hidden;
+    animation: slideInUp 0.8s ease-out;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.main .block-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    animation: shimmer 3s infinite;
-}
-
-@keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 100%; }
-}
-
-@keyframes containerSlideIn {
+@keyframes slideInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(50px);
     }
     to {
         opacity: 1;
@@ -103,96 +65,90 @@ custom_css = """
     }
 }
 
-/* Modern Header */
+/* Header Section */
 .main-header {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
     border-radius: 20px;
-    padding: 2.5rem;
+    padding: 2.5rem 2rem;
     text-align: center;
     margin-bottom: 2rem;
-    position: relative;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 .main-header h1 {
     font-size: 2.8rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #c7d2fe 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
+    -webkit-text-fill-color: transparent;
     margin: 0 0 1rem 0;
     letter-spacing: -0.02em;
 }
 
 .main-header p {
-    color: rgba(255, 255, 255, 0.9);
+    color: #475569;
     font-size: 1.2rem;
-    font-weight: 400;
+    font-weight: 500;
     margin: 0;
-    letter-spacing: 0.5px;
 }
 
-/* Modern Buttons */
+/* Perfect Buttons */
 .stButton > button {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border: none !important;
     border-radius: 16px;
-    padding: 1rem 2rem;
-    color: #ffffff !important;
-    font-weight: 600;
-    font-size: 1rem;
-    text-transform: none;
-    letter-spacing: 0.5px;
+    padding: 1rem 2.5rem !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    text-transform: none !important;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .stButton > button:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.5);
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
 }
 
 .stButton > button:active {
-    transform: translateY(0);
+    transform: translateY(-1px);
 }
 
-/* Modern Inputs */
+/* Input Fields - Fixed */
 .stTextInput > div > div > input,
 .stTextArea > div > div > textarea,
-.stNumberInput > div > div > input {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 14px;
-    color: #ffffff !important;
-    padding: 1rem 1.25rem;
-    font-weight: 500;
+.stNumberInput > div > div > input,
+.stSelectbox > div > div > div > div {
+    background: #ffffff !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    color: #1a202c !important;
+    padding: 1.2rem 1.5rem !important;
+    font-weight: 500 !important;
+    font-size: 1rem !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .stTextInput > div > div > input:focus,
 .stTextArea > div > div > textarea:focus,
 .stNumberInput > div > div > input:focus {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border-color: rgba(99, 102, 241, 0.6);
+    border-color: #667eea !important;
     box-shadow: 
-        0 0 0 3px rgba(99, 102, 241, 0.1),
-        0 10px 25px rgba(0, 0, 0, 0.2);
-    transform: translateY(-1px);
+        0 0 0 4px rgba(102, 126, 234, 0.1),
+        0 8px 25px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
 }
 
-.stTextInput label,
-.stTextArea label,
-.stNumberInput label {
-    color: rgba(255, 255, 255, 0.95) !important;
+/* Labels */
+label {
+    color: #1e293b !important;
     font-weight: 600 !important;
     font-size: 0.95rem !important;
     margin-bottom: 0.75rem !important;
@@ -201,49 +157,46 @@ custom_css = """
 
 /* Sidebar */
 [data-testid="stSidebar"] {
-    background: rgba(15, 15, 35, 0.95);
-    backdrop-filter: blur(20px);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+    border-right: 1px solid #e2e8f0 !important;
 }
 
 /* Tabs */
 .stTabs [data-baseweb="tab-list"] {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 8px;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 12px;
     gap: 8px;
 }
 
 .stTabs [data-baseweb="tab"] {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.8);
-    border-radius: 12px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
+    background: #ffffff !important;
+    border: 2px solid #e2e8f0 !important;
+    color: #64748b !important;
+    border-radius: 12px !important;
+    padding: 1rem 1.75rem !important;
+    font-weight: 600 !important;
     transition: all 0.3s ease;
 }
 
 .stTabs [aria-selected="true"] {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(236, 72, 153, 0.3) 100%);
-    border-color: rgba(99, 102, 241, 0.6);
-    color: #ffffff !important;
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-color: #667eea !important;
+    color: white !important;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
-/* Console/Metric Cards */
+/* Metrics & Other Elements */
+.metric-container, 
 .element-container {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin: 1rem 0;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+    border-radius: 16px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
-/* Modern Theme Toggle */
+/* Theme Toggle - Fixed */
 .theme-toggle {
     position: fixed;
     top: 24px;
@@ -252,28 +205,25 @@ custom_css = """
     width: 56px;
     height: 56px;
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    color: white;
+    font-size: 1.4rem;
     cursor: pointer;
-    color: #ffffff;
-    font-size: 1.3rem;
-    font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
 }
 
 .theme-toggle:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
     .main .block-container {
         padding: 1.5rem;
-        margin: 1rem;
+        margin: 0 10px;
         border-radius: 20px;
     }
     
@@ -285,6 +235,11 @@ custom_css = """
     .main-header h1 {
         font-size: 2.2rem;
     }
+    
+    .stButton > button {
+        padding: 0.9rem 2rem !important;
+        font-size: 0.95rem !important;
+    }
 }
 
 /* Scrollbar */
@@ -293,62 +248,59 @@ custom_css = """
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: #f1f5f9;
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, #667eea, #764ba2);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, #5a67d8, #6b46c1);
 }
 </style>
 
 <script>
 (function() {
-    // Modern Theme Toggle Functionality
+    'use strict';
+    
     function createThemeToggle() {
-        // Remove existing toggle if any
-        const existingToggle = document.querySelector('.theme-toggle');
-        if (existingToggle) {
-            existingToggle.remove();
-        }
+        // Remove existing toggle
+        const existing = document.querySelector('.theme-toggle');
+        if (existing) existing.remove();
         
         const toggleBtn = document.createElement('button');
         toggleBtn.className = 'theme-toggle';
         toggleBtn.innerHTML = '🌙';
-        toggleBtn.title = 'Toggle Theme';
+        toggleBtn.title = 'Toggle Light/Dark Mode';
         
-        toggleBtn.onclick = function() {
-            const html = document.documentElement;
-            const isDark = html.getAttribute('data-theme') === 'dark' || !html.getAttribute('data-theme');
+        let isDark = localStorage.getItem('darkMode') === 'true';
+        
+        function toggleMode() {
+            isDark = !isDark;
+            localStorage.setItem('darkMode', isDark);
             
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            toggleBtn.innerHTML = isDark ? '☀️' : '🌙';
+            
+            // Update Streamlit app theme
+            const app = document.querySelector('.stApp');
             if (isDark) {
-                html.setAttribute('data-theme', 'light');
-                toggleBtn.innerHTML = '☀️';
-                document.body.style.background = '#f8fafc';
+                app.style.background = '#1e293b';
             } else {
-                html.setAttribute('data-theme', 'dark');
-                toggleBtn.innerHTML = '🌙';
-                document.body.style.background = '';
+                app.style.background = '';
             }
-            
-            // Try to update Streamlit iframe if embedded
-            try {
-                const iframe = window.parent.document.querySelector('iframe');
-                if (iframe) {
-                    iframe.contentDocument.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-                }
-            } catch(e) {}
-        };
+        }
         
+        toggleBtn.onclick = toggleMode;
         document.body.appendChild(toggleBtn);
+        
+        // Initialize
+        if (isDark) toggleMode();
     }
     
-    // Initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', createThemeToggle);
     } else {
