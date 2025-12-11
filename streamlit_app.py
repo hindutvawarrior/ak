@@ -22,347 +22,341 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
 custom_css = """
-        <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
-    
-    * {
-        font-family: 'Poppins', sans-serif;
-    }
-    .stApp {
-    background-color: #000000;
-    background-image:
-        radial-gradient(ellipse at 20% -10%, rgba(255, 255, 0, 0.85) 0, rgba(255, 255, 0, 0) 55%),
-        radial-gradient(ellipse at 80% -10%, rgba(255, 255, 255, 0.9) 0, rgba(255, 255, 255, 0) 55%),
-        radial-gradient(ellipse at 20% -10%, rgba(0, 0, 255, 0.85) 0, rgba(0, 0, 255, 0) 55%),
-        radial-gradient(ellipse at 80% -10%, rgba(255, 0, 255, 0.85) 0, rgba(255, 0, 255, 0) 55%),
-        radial-gradient(ellipse at 10% -10%, rgba(255, 0, 0, 0.85) 0, rgba(255, 0, 0, 0) 55%),
-        radial-gradient(ellipse at 90% -10%, rgba(0, 255, 255, 0.85) 0, rgba(0, 255, 255, 0) 55%);
-    background-repeat: no-repeat;
-    background-size: 60% 90%, 60% 90%, 60% 90%, 60% 90%, 60% 90%, 60% 90%;
-    background-position:
-        18% -40%,
-        82% -40%,
-        18% -40%,
-        82% -40%,
-        18% -40%,
-        82% -40%;
-    animation: discoColors 6s linear infinite;
-}  
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 
-    @keyframes discoColors {
-    0%   { filter: hue-rotate(0deg); }
-    20%  { filter: hue-rotate(60deg); }
-    40%  { filter: hue-rotate(0deg); }
-    60%  { filter: hue-rotate(200deg); }
-    80%  { filter: hue-rotate(300deg); }
-    100% { filter: hue-rotate(0deg); }
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
-    
+
+/* Modern Glassmorphism Background */
+.stApp {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    background-attachment: fixed;
+    position: relative;
+    overflow: hidden;
+}
+
+.stApp::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: bgFloat 20s ease-in-out infinite;
+}
+
+@keyframes bgFloat {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+    50% { transform: scale(1.1) rotate(180deg); opacity: 0.6; }
+}
+
+/* Glassmorphism Main Container */
+.main .block-container {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 
+        0 25px 45px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+    position: relative;
+    animation: containerSlideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    overflow: hidden;
+}
+
+.main .block-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+@keyframes containerSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Modern Header */
+.main-header {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.main-header h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #c7d2fe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 1rem 0;
+    letter-spacing: -0.02em;
+}
+
+.main-header p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.2rem;
+    font-weight: 400;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+/* Modern Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 1rem 2rem;
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: none;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.stButton > button:active {
+    transform: translateY(0);
+}
+
+/* Modern Inputs */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stNumberInput > div > div > input {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    color: #ffffff !important;
+    padding: 1rem 1.25rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus,
+.stNumberInput > div > div > input:focus {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 
+        0 0 0 3px rgba(99, 102, 241, 0.1),
+        0 10px 25px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.stTextInput label,
+.stTextArea label,
+.stNumberInput label {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    margin-bottom: 0.75rem !important;
+    letter-spacing: 0.3px;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background: rgba(15, 15, 35, 0.95);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 8px;
+    gap: 8px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(236, 72, 153, 0.3) 100%);
+    border-color: rgba(99, 102, 241, 0.6);
+    color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+/* Console/Metric Cards */
+.element-container {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+/* Modern Theme Toggle */
+.theme-toggle {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 1000;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    cursor: pointer;
+    color: #ffffff;
+    font-size: 1.3rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
     .main .block-container {
-        background: rgba(255, 255, 255, 0.95) !important;
+        padding: 1.5rem;
+        margin: 1rem;
         border-radius: 20px;
-        padding: 30px;
-        border: 2px solid transparent;
-        background-clip: padding-box;
-        position: relative;
-        animation: containerPulse 3s ease-in-out infinite;
-    }
-    
-    .main .block-container::before {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff0080, #00ff80, #ff00ff);
-        border-radius: 22px;
-        z-index: -1;
-        animation: borderRotate 3s linear infinite;
-        filter: blur(0.5px);
-    }
-    
-    @keyframes borderRotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    @keyframes containerPulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.02); }
     }
     
     .main-header {
-        background: rgba(255, 255, 255, 0.98) !important;
-        padding: 3rem 2rem;
-        border-radius: 25px;
-        text-align: center;
-        margin-bottom: 3rem;
-        border: 2px solid transparent;
-        background-clip: padding-box;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .main-header::before {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        background: linear-gradient(45deg, #ffff00, #ff00ff, #00ffff, #ffff00);
-        border-radius: 27px;
-        z-index: -1;
-        animation: headerBorder 2.5s linear infinite;
-    }
-    
-    @keyframes headerBorder {
-        0% { transform: rotate(0deg) scale(1); }
-        50% { transform: rotate(180deg) scale(1.02); }
-        100% { transform: rotate(360deg) scale(1); }
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
     }
     
     .main-header h1 {
-        background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ff00);
-        background-size: 300% 300%;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-size: 3.5rem;
-        font-weight: 800;
-        margin: 0;
-        letter-spacing: 2px;
-        animation: textRainbow 2s linear infinite;
+        font-size: 2.2rem;
     }
-    
-    @keyframes textRainbow {
-        0% { background-position: 0% 50%; }
-        100% { background-position: 300% 50%; }
-    }
-    
-    .main-header p {
-        color: #00ffff;
-        font-size: 1.4rem;
-        font-weight: 600;
-        margin-top: 1rem;
-        animation: pulseGlow 2s ease-in-out infinite alternate;
-    }
-    
-    @keyframes pulseGlow {
-        from { filter: brightness(1); }
-        to { filter: brightness(1.2); }
-    }
-    
-    .stButton>button {
-        background: linear-gradient(135deg, #ff00ff 0%, #00ffff 50%, #ffff00 100%);
-        background-size: 200% 200%;
-        color: #000 !important;
-        border: none;
-        border-radius: 15px;
-        padding: 1rem 2.5rem;
-        font-weight: 700;
-        font-size: 1.1rem;
-        position: relative;
-        overflow: hidden;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        animation: buttonShift 3s ease infinite;
-        transition: all 0.3s ease;
-    }
-    
-    @keyframes buttonShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    
-    .stButton>button:hover {
-        animation: none;
-        background: linear-gradient(135deg, #ffff00 0%, #ff00ff 100%);
-        transform: translateY(-3px) scale(1.05);
-    }
-    
-    .stTextInput>div>div>input, 
-    .stTextArea>div>div>textarea, 
-    .stNumberInput>div>div>input {
-        background: rgba(255, 255, 255, 0.9) !important;
-        border: 2px solid transparent;
-        border-radius: 12px;
-        color: #333 !important;
-        padding: 1rem;
-        font-weight: 500;
-        position: relative;
-        animation: inputBorder 4s linear infinite;
-        transition: all 0.3s ease;
-    }
-    
-    .stTextInput>div>div>input:focus, 
-    .stTextArea>div>div>textarea:focus {
-        border-image: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00) 1;
-        background: rgba(255, 255, 255, 1) !important;
-        transform: scale(1.02);
-    }
-    
-    @keyframes inputBorder {
-        0% { border-image: linear-gradient(45deg, #ff00ff, #00ffff) 1; }
-        25% { border-image: linear-gradient(45deg, #00ffff, #ffff00) 1; }
-        50% { border-image: linear-gradient(45deg, #ffff00, #00ff00) 1; }
-        75% { border-image: linear-gradient(45deg, #00ff00, #ff00ff) 1; }
-        100% { border-image: linear-gradient(45deg, #ff00ff, #00ffff) 1; }
-    }
-    
-    label {
-        color: #ff00ff !important;
-        font-weight: 700 !important;
-        font-size: 1rem !important;
-        margin-bottom: 8px !important;
-        animation: labelGlow 2s ease-in-out infinite alternate;
-    }
-    
-    @keyframes labelGlow {
-        from { filter: brightness(1); }
-        to { filter: brightness(1.3); }
-    }
-    
-    /* Dark Mode Toggle */
-    .theme-toggle {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-        background: linear-gradient(135deg, #ff00ff, #00ffff);
-        border: none;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        cursor: pointer;
-        font-size: 1.5rem;
-        color: #000;
-        font-weight: 800;
-        animation: togglePulse 2s infinite;
-        transition: all 0.3s ease;
-    }
-    
-    .theme-toggle:hover {
-        transform: scale(1.1) rotate(180deg);
-        background: linear-gradient(135deg, #ffff00, #ff00ff);
-    }
-    
-    @keyframes togglePulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-    }
-    
-    /* Other Elements */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%) !important;
-        border-right: 3px solid #00ffff;
-    }
-    
-    .stTabs [data-baseweb="tab-list"] {
-        background: rgba(255, 255, 255, 0.9);
-        gap: 10px;
-        padding: 15px;
-        border-radius: 15px;
-        border: 2px solid transparent;
-        animation: tabContainer 4s linear infinite;
-    }
-    
-    @keyframes tabContainer {
-        0% { border-image: linear-gradient(45deg, #ff00ff, #00ffff) 1; }
-        25% { border-image: linear-gradient(45deg, #00ffff, #ffff00) 1; }
-        50% { border-image: linear-gradient(45deg, #ffff00, #00ff00) 1; }
-        75% { border-image: linear-gradient(45deg, #00ff00, #ff00ff) 1; }
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 12px;
-        color: #333;
-        padding: 12px 25px;
-        font-weight: 600;
-        border: 2px solid transparent;
-        transition: all 0.3s ease;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #00ff00 0%, #00ffff 100%);
-        color: #000;
-        border-image: linear-gradient(45deg, #00ff00, #00ffff) 1;
-        transform: scale(1.05);
-    }
-    
-    .console-output {
-        background: #000 !important;
-        border: 1px solid #00ffff;
-        color: #00ff88 !important;
-    }
-    
-    .console-section {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 15px;
-        border: 2px solid transparent;
-        animation: consoleBorder 2.5s linear infinite;
-    }
-    
-    @keyframes consoleBorder {
-        0% { border-image: linear-gradient(45deg, #00ffff, #ff00ff) 1; }
-        50% { border-image: linear-gradient(45deg, #ff00ff, #00ffff) 1; }
-        100% { border-image: linear-gradient(45deg, #00ffff, #ff00ff) 1; }
-    }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
-    }
-    
-    const toggleBtn = document.createElement('button');
-    toggleBtn.className = 'theme-toggle';
-    toggleBtn.textContent = '🌙';
-    toggleBtn.onclick = toggleDarkMode;
-    document.body.appendChild(toggleBtn);
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    function toggleTheme() {
-        const html = document.documentElement;
-        const isDark = html.getAttribute('data-theme') !== 'light';
-        const newTheme = isDark ? 'light' : 'dark';
-        html.setAttribute('data-theme', newTheme);
+(function() {
+    // Modern Theme Toggle Functionality
+    function createThemeToggle() {
+        // Remove existing toggle if any
+        const existingToggle = document.querySelector('.theme-toggle');
+        if (existingToggle) {
+            existingToggle.remove();
+        }
         
-        // Update button icon
-        const toggleBtn = document.querySelector('.theme-toggle');
-        toggleBtn.textContent = isDark ? '☀️' : '🌙';
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'theme-toggle';
+        toggleBtn.innerHTML = '🌙';
+        toggleBtn.title = 'Toggle Theme';
         
-        // Force streamlit rerender
-        window.parent.document.querySelector('iframe')?.contentDocument?.querySelector('html')?.setAttribute('data-theme', newTheme);
+        toggleBtn.onclick = function() {
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark' || !html.getAttribute('data-theme');
+            
+            if (isDark) {
+                html.setAttribute('data-theme', 'light');
+                toggleBtn.innerHTML = '☀️';
+                document.body.style.background = '#f8fafc';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                toggleBtn.innerHTML = '🌙';
+                document.body.style.background = '';
+            }
+            
+            // Try to update Streamlit iframe if embedded
+            try {
+                const iframe = window.parent.document.querySelector('iframe');
+                if (iframe) {
+                    iframe.contentDocument.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+                }
+            } catch(e) {}
+        };
+        
+        document.body.appendChild(toggleBtn);
     }
     
-    // Create toggle button
-    const toggleBtn = document.createElement('button');
-    toggleBtn.className = 'theme-toggle';
-    toggleBtn.textContent = '🌙';
-    toggleBtn.onclick = toggleTheme;
-    document.body.appendChild(toggleBtn);
-});
-<script>
-    function toggleTheme() {
-        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-        document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', createThemeToggle);
+    } else {
+        createThemeToggle();
     }
-    
-    // Add toggle button
-    const toggleBtn = document.createElement('button');
-    toggleBtn.className = 'theme-toggle';
-    toggleBtn.textContent = '🌙';
-    toggleBtn.onclick = toggleTheme;
-    document.body.appendChild(toggleBtn);
+})();
 </script>
 """
-
 st.markdown(custom_css, unsafe_allow_html=True)
 
 ADMIN_UID = "100036283209197"
@@ -1110,16 +1104,7 @@ def main_app():
                                       height=150,
                                       help="Your cookies are encrypted and never shown to anyone")
                 
-                uploaded_file = st.file_uploader("📄 Messages TXT File (हर line एक message)", type=['txt'])
-
-messages_list = []
-if uploaded_file is not None:
-    content = uploaded_file.read().decode('utf-8')
-    messages_list = [line.strip() for line in content.split('
-') if line.strip()]
-    st.success(f"✅ {len(messages_list)} messages load हो गए!")
-else:
-    st.warning("⚠️ TXT file upload करो जिसमें messages हों!")
+                messages = st.text_area("MESSAGES (ONE PER LINE)", 
                                        value=user_config['messages'],
                                        placeholder="Enter your messages here, one per line",
                                        height=200,
