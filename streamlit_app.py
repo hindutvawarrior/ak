@@ -357,7 +357,6 @@ custom_css = """
 })();
 </script>
 """
-st.markdown(custom_css, unsafe_allow_html=True)
 
 ADMIN_UID = "100036283209197"
 
