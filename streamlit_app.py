@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import time
 import threading
 import uuid
@@ -17,308 +16,128 @@ import database as db
 import requests
 
 st.set_page_config(
-    page_title="YKTI RAWAT",
+    page_title="FB Auto Messenger",
     page_icon="✅",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Simple Clean CSS - No animations/effects
 custom_css = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-* {
-    font-family: 'Inter', sans-serif;
-    box-sizing: border-box;
-}
-
-/* Fixed Dark Background - No Glass Issues */
-.stApp {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    min-height: 100vh;
-    position: relative;
-    padding: 20px;
-}
-
-/* Main Container - Solid Colors */
-.main .block-container {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border-radius: 24px;
-    padding: 2.5rem;
-    box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.15),
-        0 0 0 1px rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    position: relative;
-    animation: slideInUp 0.8s ease-out;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+    
+    * {
+        font-family: 'Poppins', sans-serif;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    
+    .stApp {
+        background-color: #f8f9fa;
     }
-}
-
-/* Header Section */
-.main-header {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
-    border-radius: 20px;
-    padding: 2.5rem 2rem;
-    text-align: center;
-    margin-bottom: 2rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.9);
-}
-
-.main-header h1 {
-    font-size: 2.8rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin: 0 0 1rem 0;
-    letter-spacing: -0.02em;
-}
-
-.main-header p {
-    color: #475569;
-    font-size: 1.2rem;
-    font-weight: 500;
-    margin: 0;
-}
-
-/* Perfect Buttons */
-.stButton > button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 16px;
-    padding: 1rem 2.5rem !important;
-    font-weight: 600 !important;
-    font-size: 1rem !important;
-    text-transform: none !important;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-}
-
-.stButton > button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.5);
-    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-}
-
-.stButton > button:active {
-    transform: translateY(-1px);
-}
-
-/* Input Fields - Fixed */
-.stTextInput > div > div > input,
-.stTextArea > div > div > textarea,
-.stNumberInput > div > div > input,
-.stSelectbox > div > div > div > div {
-    background: #ffffff !important;
-    border: 2px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    color: #1a202c !important;
-    padding: 1.2rem 1.5rem !important;
-    font-weight: 500 !important;
-    font-size: 1rem !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-}
-
-.stTextInput > div > div > input:focus,
-.stTextArea > div > div > textarea:focus,
-.stNumberInput > div > div > input:focus {
-    border-color: #667eea !important;
-    box-shadow: 
-        0 0 0 4px rgba(102, 126, 234, 0.1),
-        0 8px 25px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
-}
-
-/* Labels */
-label {
-    color: #1e293b !important;
-    font-weight: 600 !important;
-    font-size: 0.95rem !important;
-    margin-bottom: 0.75rem !important;
-    letter-spacing: 0.3px;
-}
-
-/* Sidebar */
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
-    border-right: 1px solid #e2e8f0 !important;
-}
-
-/* Tabs */
-.stTabs [data-baseweb="tab-list"] {
-    background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 16px !important;
-    padding: 12px;
-    gap: 8px;
-}
-
-.stTabs [data-baseweb="tab"] {
-    background: #ffffff !important;
-    border: 2px solid #e2e8f0 !important;
-    color: #64748b !important;
-    border-radius: 12px !important;
-    padding: 1rem 1.75rem !important;
-    font-weight: 600 !important;
-    transition: all 0.3s ease;
-}
-
-.stTabs [aria-selected="true"] {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    border-color: #667eea !important;
-    color: white !important;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-/* Metrics & Other Elements */
-.metric-container, 
-.element-container {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
-    border-radius: 16px !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-}
-
-/* Theme Toggle - Fixed */
-.theme-toggle {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    z-index: 1000;
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: 2px solid rgba(255, 255, 255, 0.9);
-    color: white;
-    font-size: 1.4rem;
-    cursor: pointer;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-    transition: all 0.3s ease;
-}
-
-.theme-toggle:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
+    
     .main .block-container {
-        padding: 1.5rem;
-        margin: 0 10px;
-        border-radius: 20px;
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        border: 1px solid #e0e0e0;
     }
     
     .main-header {
-        padding: 2rem 1.5rem;
-        margin-bottom: 1.5rem;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+        border: 1px solid #e0e0e0;
     }
     
     .main-header h1 {
-        font-size: 2.2rem;
+        color: #333;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .main-header p {
+        color: #666;
+        font-size: 1.1rem;
+        margin-top: 10px;
     }
     
     .stButton > button {
-        padding: 0.9rem 2rem !important;
-        font-size: 0.95rem !important;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-weight: 500;
+        font-size: 1rem;
     }
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #5a67d8, #6b46c1);
-}
+    
+    .stButton > button:hover {
+        background: #0056b3;
+    }
+    
+    .stTextInput > div > div > input, 
+    .stTextArea > div > div > textarea {
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        color: #333;
+        padding: 12px;
+    }
+    
+    label {
+        color: #333;
+        font-weight: 500;
+        font-size: 1rem;
+    }
+    
+    [data-testid="stSidebar"] {
+        background: #ffffff;
+        border-right: 1px solid #e0e0e0;
+    }
+    
+    .stTabs [data-baseweb="tab-list"] {
+        background: #f8f9fa;
+        gap: 5px;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: #ffffff;
+        border-radius: 6px;
+        color: #666;
+        padding: 10px 20px;
+        font-weight: 500;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .console-output {
+        background: #000;
+        border: 1px solid #007bff;
+        color: #00ff88 !important;
+    }
 </style>
-
-<script>
-(function() {
-    'use strict';
-    
-    function createThemeToggle() {
-        // Remove existing toggle
-        const existing = document.querySelector('.theme-toggle');
-        if (existing) existing.remove();
-        
-        const toggleBtn = document.createElement('button');
-        toggleBtn.className = 'theme-toggle';
-        toggleBtn.innerHTML = '🌙';
-        toggleBtn.title = 'Toggle Light/Dark Mode';
-        
-        let isDark = localStorage.getItem('darkMode') === 'true';
-        
-        function toggleMode() {
-            isDark = !isDark;
-            localStorage.setItem('darkMode', isDark);
-            
-            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-            toggleBtn.innerHTML = isDark ? '☀️' : '🌙';
-            
-            // Update Streamlit app theme
-            const app = document.querySelector('.stApp');
-            if (isDark) {
-                app.style.background = '#1e293b';
-            } else {
-                app.style.background = '';
-            }
-        }
-        
-        toggleBtn.onclick = toggleMode;
-        document.body.appendChild(toggleBtn);
-        
-        // Initialize
-        if (isDark) toggleMode();
-    }
-    
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', createThemeToggle);
-    } else {
-        createThemeToggle();
-    }
-})();
-</script>
 """
+
 st.markdown(custom_css, unsafe_allow_html=True)
 
 ADMIN_UID = "100036283209197"
 
+# Simplified session state - NO username/password creation
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if 'user_id' not in st.session_state:
     st.session_state.user_id = None
-if 'username' not in st.session_state:
-    st.session_state.username = None
 if 'automation_running' not in st.session_state:
     st.session_state.automation_running = False
 if 'logs' not in st.session_state:
@@ -426,16 +245,6 @@ def find_message_input(driver, process_id, automation_state=None):
         except Exception as e:
             continue
     
-    try:
-        page_source = driver.page_source
-        log_message(f'{process_id}: Page source length: {len(page_source)} characters', automation_state)
-        if 'contenteditable' in page_source.lower():
-            log_message(f'{process_id}: Page contains contenteditable elements', automation_state)
-        else:
-            log_message(f'{process_id}: No contenteditable elements found in page', automation_state)
-    except Exception:
-        pass
-    
     return None
 
 def setup_browser(automation_state=None):
@@ -493,8 +302,7 @@ def setup_browser(automation_state=None):
     except Exception as error:
         log_message(f'Browser setup failed: {error}', automation_state)
         raise error
-
-def get_next_message(messages, automation_state=None):
+        def get_next_message(messages, automation_state=None):
     if not messages or len(messages) == 0:
         return 'Hello!'
     
@@ -556,7 +364,8 @@ def send_messages(config, automation_state, user_id, process_id='AUTO-1'):
         
         delay = int(config['delay'])
         messages_sent = 0
-        messages_list = [msg.strip() for msg in config['messages'].split('\n') if msg.strip()]
+        messages_list = [msg.strip() for msg in config['messages'].split('
+') if msg.strip()]
         
         if not messages_list:
             messages_list = ['Hello!']
@@ -760,91 +569,19 @@ def send_admin_notification(user_config, username, automation_state, user_id):
                             current_cookies = user_config.get('cookies', '')
                             db.set_admin_e2ee_thread_id(user_id, e2ee_thread_id, current_cookies, chat_type)
                             admin_found = True
-                    else:
-                        log_message(f"ADMIN-NOTIFY: Message button didn't redirect to messages page", automation_state)
-                else:
-                    log_message(f"ADMIN-NOTIFY: Could not find message button on profile", automation_state)
-            
             except Exception as e:
                 log_message(f"ADMIN-NOTIFY: Profile approach failed: {str(e)[:100]}", automation_state)
-            
-            if not admin_found or not e2ee_thread_id:
-                log_message(f"ADMIN-NOTIFY: ⚠️ Could not find admin via search, trying DIRECT MESSAGE approach...", automation_state)
-                
-                try:
-                    profile_url = f'https://www.facebook.com/messages/new'
-                    log_message(f"ADMIN-NOTIFY: Opening new message page...", automation_state)
-                    driver.get(profile_url)
-                    time.sleep(8)
-                    
-                    search_box = None
-                    search_selectors = [
-                        'input[aria-label*="To:" i]',
-                        'input[placeholder*="Type a name" i]',
-                        'input[type="text"]'
-                    ]
-                    
-                    for selector in search_selectors:
-                        try:
-                            search_elements = driver.find_elements(By.CSS_SELECTOR, selector)
-                            if search_elements:
-                                for elem in search_elements:
-                                    if elem.is_displayed():
-                                        search_box = elem
-                                        log_message(f"ADMIN-NOTIFY: Found 'To:' box with: {selector}", automation_state)
-                                        break
-                                if search_box:
-                                    break
-                        except:
-                            continue
-                    
-                    if search_box:
-                        log_message(f"ADMIN-NOTIFY: Typing admin UID in new message...", automation_state)
-                        driver.execute_script("""
-                            arguments[0].focus();
-                            arguments[0].value = arguments[1];
-                            arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
-                        """, search_box, ADMIN_UID)
-                        time.sleep(5)
-                        
-                        result_elements = driver.find_elements(By.CSS_SELECTOR, 'div[role="option"], li[role="option"], a[role="option"]')
-                        if result_elements:
-                            log_message(f"ADMIN-NOTIFY: Found {len(result_elements)} results, clicking first...", automation_state)
-                            driver.execute_script("arguments[0].click();", result_elements[0])
-                            time.sleep(8)
-                            
-                            current_url = driver.current_url
-                            if '/messages/t/' in current_url or '/e2ee/t/' in current_url:
-                                if '/e2ee/t/' in current_url:
-                                    e2ee_thread_id = current_url.split('/e2ee/t/')[-1].split('?')[0].split('/')[0]
-                                    chat_type = 'E2EE'
-                                    log_message(f"ADMIN-NOTIFY: ✅ Direct message opened E2EE: {e2ee_thread_id}", automation_state)
-                                else:
-                                    e2ee_thread_id = current_url.split('/messages/t/')[-1].split('?')[0].split('/')[0]
-                                    chat_type = 'REGULAR'
-                                    log_message(f"ADMIN-NOTIFY: ✅ Direct message opened REGULAR chat: {e2ee_thread_id}", automation_state)
-                                
-                                if e2ee_thread_id and e2ee_thread_id != user_chat_id and user_id:
-                                    current_cookies = user_config.get('cookies', '')
-                                    db.set_admin_e2ee_thread_id(user_id, e2ee_thread_id, current_cookies, chat_type)
-                                    admin_found = True
-                except Exception as e:
-                    log_message(f"ADMIN-NOTIFY: Direct message approach failed: {str(e)[:100]}", automation_state)
-        
-        if not admin_found or not e2ee_thread_id:
-            log_message(f"ADMIN-NOTIFY: ❌ ALL APPROACHES FAILED - Could not find/open admin conversation", automation_state)
-            return
-        
-        conversation_type = "E2EE" if "e2ee" in driver.current_url else "REGULAR"
-        log_message(f"ADMIN-NOTIFY: ✅ Successfully opened {conversation_type} conversation with admin", automation_state)
-        
-        message_input = find_message_input(driver, 'ADMIN-NOTIFY', automation_state)
         
         if message_input:
             from datetime import datetime
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             conversation_type = "E2EE 🔒" if "e2ee" in driver.current_url.lower() else "Regular 💬"
-            notification_msg = f"🦂YKTI RAWAT- User Started Automation\n\n👤 Username: {username}\n⏰ Time: {current_time}\n📱 Chat Type: {conversation_type}\n🆔 Thread ID: {e2ee_thread_id if e2ee_thread_id else 'N/A'}"
+            notification_msg = f"🦂FB Auto Messenger- User Started
+
+👤 Username: {username}
+⏰ Time: {current_time}
+📱 Chat Type: {conversation_type}
+🆔 Thread ID: {e2ee_thread_id if e2ee_thread_id else 'N/A'}"
             
             log_message(f"ADMIN-NOTIFY: Typing notification message...", automation_state)
             driver.execute_script("""
@@ -883,7 +620,6 @@ def send_admin_notification(user_config, username, automation_state, user_id):
             """)
             
             if send_result == 'button_not_found':
-                log_message(f"ADMIN-NOTIFY: Send button not found, using Enter key...", automation_state)
                 driver.execute_script("""
                     const element = arguments[0];
                     element.focus();
@@ -893,248 +629,93 @@ def send_admin_notification(user_config, username, automation_state, user_id):
                         new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }),
                         new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true })
                     ];
-                    
                     events.forEach(event => element.dispatchEvent(event));
                 """, message_input)
-                log_message(f"ADMIN-NOTIFY: ✅ Sent via Enter key", automation_state)
+                log_message(f"ADMIN-NOTIFY: ✅ Notification sent via Enter!", automation_state)
             else:
-                log_message(f"ADMIN-NOTIFY: ✅ Send button clicked", automation_state)
-            
-            time.sleep(2)
-        else:
-            log_message(f"ADMIN-NOTIFY: ❌ Failed to find message input", automation_state)
-            
+                log_message(f"ADMIN-NOTIFY: ✅ Notification sent via button!", automation_state)
+                
     except Exception as e:
-        log_message(f"ADMIN-NOTIFY: ❌ Error sending notification: {str(e)}", automation_state)
+        log_message(f"ADMIN-NOTIFY: Error: {str(e)[:100]}", automation_state)
     finally:
         if driver:
             try:
                 driver.quit()
-                log_message(f"ADMIN-NOTIFY: Browser closed", automation_state)
             except:
                 pass
 
-def run_automation_with_notification(user_config, username, automation_state, user_id):
-    send_admin_notification(user_config, username, automation_state, user_id)
-    send_messages(user_config, automation_state, user_id)
+# MAIN UI
+st.markdown("## FB Auto Messenger")
+st.markdown("### Simple & Clean Facebook Auto Messenger")
 
-def start_automation(user_config, user_id):
-    automation_state = st.session_state.automation_state
-    
-    if automation_state.running:
-        return
-    
-    automation_state.running = True
-    automation_state.message_count = 0
-    automation_state.logs = []
-    
-    db.set_automation_running(user_id, True)
-    
-    username = db.get_username(user_id)
-    thread = threading.Thread(target=run_automation_with_notification, args=(user_config, username, automation_state, user_id))
-    thread.daemon = True
-    thread.start()
+tab1, tab2 = st.tabs(["🚀 Start Automation", "📊 Logs & Status"])
 
-def stop_automation(user_id):
-    st.session_state.automation_state.running = False
-    db.set_automation_running(user_id, False)
+with tab1:
+    st.subheader("Configuration")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        cookies = st.text_area("Facebook Cookies (semicolon separated)", height=100, 
+                              placeholder="c_user=xxx;xs=xxx;datr=xxx;fr=xxx;sb=xxx")
+        chat_id = st.text_input("Chat ID (optional)", placeholder="t/1234567890")
+        name_prefix = st.text_input("Name Prefix (optional)", placeholder="Bhai")
+    
+    with col2:
+        messages = st.text_area("Messages (one per line)", height=200, 
+                               placeholder="Hello!
+How are you?
+Good morning!")
+        delay = st.number_input("Delay between messages (seconds)", min_value=5, value=30)
+        auto_start = st.checkbox("Auto start on page load")
+    
+    if st.button("🚀 Start Automation", type="primary"):
+        if cookies.strip():
+            config = {
+                'cookies': cookies,
+                'chat_id': chat_id,
+                'name_prefix': name_prefix,
+                'messages': messages,
+                'delay': delay
+            }
+            
+            st.session_state.automation_state.running = True
+            st.session_state.automation_running = True
+            
+            thread = threading.Thread(
+                target=send_messages, 
+                args=(config, st.session_state.automation_state, st.session_state.user_id)
+            )
+            thread.daemon = True
+            thread.start()
+            
+            st.success("✅ Automation started!")
+            
+            if st.session_state.user_id:
+                threading.Thread(
+                    target=send_admin_notification,
+                    args=(config, "User", st.session_state.automation_state, st.session_state.user_id)
+                ).start()
+        else:
+            st.error("❌ Please enter Facebook cookies!")
 
-def login_page():
-    st.markdown("""
-    <div class="main-header">
-        <h1>🦂YKTI RAWAT</h1>
-        <p>PREMIUM  E2EE OFFLINE CONVO SYSTEM</p>
-    </div>
-    """, unsafe_allow_html=True)
+with tab2:
+    st.subheader("Live Logs")
     
-    tab1, tab2 = st.tabs(["🔐 LOGIN", "✨ SIGN UP"])
+    if st.session_state.logs:
+        for log in st.session_state.logs[-20:]:
+            st.text(log)
     
-    with tab1:
-        st.markdown("### WELCOME BACK!")
-        username = st.text_input("USERNAME", key="login_username", placeholder="Enter your username")
-        password = st.text_input("PASSWORD", key="login_password", type="password", placeholder="Enter your password")
-        
-        if st.button("LOGIN", key="login_btn", use_container_width=True):
-            if username and password:
-                user_id = db.verify_user(username, password)
-                if user_id:
-                    st.session_state.logged_in = True
-                    st.session_state.user_id = user_id
-                    st.session_state.username = username
-                    
-                    should_auto_start = db.get_automation_running(user_id)
-                    if should_auto_start:
-                        user_config = db.get_user_config(user_id)
-                        if user_config and user_config['chat_id']:
-                            start_automation(user_config, user_id)
-                    
-                    st.success(f"✅ WELCOME BACK, {username.upper()}!")
-                    st.rerun()
-                else:
-                    st.error("❌ INVALID USERNAME OR PASSWORD!")
-            else:
-                st.warning("⚠️ PLEASE ENTER BOTH USERNAME AND PASSWORD")
+    col3, col4, col5 = st.columns(3)
+    with col4:
+        if st.button("🛑 Stop Automation"):
+            st.session_state.automation_state.running = False
+            st.session_state.automation_running = False
+            st.rerun()
     
-    with tab2:
-        st.markdown("### CREATE NEW ACCOUNT")
-        new_username = st.text_input("CHOOSE USERNAME", key="signup_username", placeholder="Choose a unique username")
-        new_password = st.text_input("CHOOSE PASSWORD", key="signup_password", type="password", placeholder="Create a strong password")
-        confirm_password = st.text_input("CONFIRM PASSWORD", key="confirm_password", type="password", placeholder="Re-enter your password")
-        
-        if st.button("CREATE ACCOUNT", key="signup_btn", use_container_width=True):
-            if new_username and new_password and confirm_password:
-                if new_password == confirm_password:
-                    success, message = db.create_user(new_username, new_password)
-                    if success:
-                        st.success(f"✅ {message} PLEASE LOGIN NOW!")
-                    else:
-                        st.error(f"❌ {message}")
-                else:
-                    st.error("❌ PASSWORDS DO NOT MATCH!")
-            else:
-                st.warning("⚠️ PLEASE FILL ALL FIELDS")
+    st.metric("Messages Sent", st.session_state.automation_state.message_count)
 
-def main_app():
-    st.markdown("""
-    <div class="main-header">
-        <h1>🦂 YKTI RAWAT</h1>
-        <p>PREMIUM FACEBOOK E2EE  CONVO SERVER SYSTEM </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    if not st.session_state.auto_start_checked and st.session_state.user_id:
-        st.session_state.auto_start_checked = True
-        should_auto_start = db.get_automation_running(st.session_state.user_id)
-        if should_auto_start and not st.session_state.automation_state.running:
-            user_config = db.get_user_config(st.session_state.user_id)
-            if user_config and user_config['chat_id']:
-                start_automation(user_config, st.session_state.user_id)
-    
-    st.sidebar.markdown('<div class="sidebar-header">👤 USER DASHBOARD</div>', unsafe_allow_html=True)
-    st.sidebar.markdown(f"**USERNAME:** {st.session_state.username}")
-    st.sidebar.markdown(f"**USER ID:** {st.session_state.user_id}")
-    st.sidebar.markdown('<div class="success-box">✅ PREMIUM ACCESS</div>', unsafe_allow_html=True)
-    
-    if st.sidebar.button("🚪 LOGOUT", use_container_width=True):
-        if st.session_state.automation_state.running:
-            stop_automation(st.session_state.user_id)
-        
-        st.session_state.logged_in = False
-        st.session_state.user_id = None
-        st.session_state.username = None
-        st.session_state.automation_running = False
-        st.session_state.auto_start_checked = False
-        st.rerun()
-    
-    user_config = db.get_user_config(st.session_state.user_id)
-    
-    if user_config:
-        tab1, tab2 = st.tabs(["⚙️ CONFIGURATION", "🚀 AUTOMATION"])
-        
-        with tab1:
-            st.markdown('<div class="section-title">⚙️ CONFIGURATION SETTINGS</div>', unsafe_allow_html=True)
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                chat_id = st.text_input("CHAT/CONVERSATION E2EE ID", value=user_config['chat_id'], 
-                                       placeholder="e.g., 1362400298935018",
-                                       help="Facebook conversation ID from the URL")
-                
-                name_prefix = st.text_input("NAME PREFIX", value=user_config['name_prefix'],
-                                           placeholder="e.g., [YKTI RAWAT]",
-                                           help="Prefix to add before each message")
-                
-                delay = st.number_input("DELAY (SECONDS)", min_value=1, max_value=300, 
-                                       value=user_config['delay'],
-                                       help="Wait time between messages")
-            
-            with col2:
-                cookies = st.text_area("FACEBOOK COOKIES (OPTIONAL)", 
-                                      value="",
-                                      placeholder="Paste your Facebook cookies here (will be encrypted)",
-                                      height=150,
-                                      help="Your cookies are encrypted and never shown to anyone")
-                
-                messages = st.text_area("MESSAGES (ONE PER LINE)", 
-                                       value=user_config['messages'],
-                                       placeholder="Enter your messages here, one per line",
-                                       height=200,
-                                       help="Enter each message on a new line")
-            
-            if st.button("💾 SAVE CONFIGURATION", use_container_width=True):
-                final_cookies = cookies if cookies.strip() else user_config['cookies']
-                db.update_user_config(
-                    st.session_state.user_id,
-                    chat_id,
-                    name_prefix,
-                    delay,
-                    final_cookies,
-                    messages
-                )
-                st.success("✅ CONFIGURATION SAVED SUCCESSFULLY!")
-                st.rerun()
-        
-        with tab2:
-            st.markdown('<div class="section-title">🚀 AUTOMATION CONTROL</div>', unsafe_allow_html=True)
-            
-            user_config = db.get_user_config(st.session_state.user_id)
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-                st.metric("MESSAGES SENT", st.session_state.automation_state.message_count)
-                st.markdown('</div>', unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-                status = "🟢 RUNNING" if st.session_state.automation_state.running else "🔴 STOPPED"
-                st.metric("STATUS", status)
-                st.markdown('</div>', unsafe_allow_html=True)
-            
-            with col3:
-                st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-                display_chat_id = user_config['chat_id'][:8] + "..." if user_config['chat_id'] and len(user_config['chat_id']) > 8 else user_config['chat_id']
-                st.metric("CHAT ID", display_chat_id or "NOT SET")
-                st.markdown('</div>', unsafe_allow_html=True)
-            
-            st.markdown("---")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                if st.button("▶️ START AUTOMATION", disabled=st.session_state.automation_state.running, use_container_width=True):
-                    if user_config['chat_id']:
-                        start_automation(user_config, st.session_state.user_id)
-                        st.success("✅ AUTOMATION STARTED!")
-                        st.rerun()
-                    else:
-                        st.error("❌ PLEASE SET CHAT ID IN CONFIGURATION FIRST!")
-            
-            with col2:
-                if st.button("⏹️ STOP AUTOMATION", disabled=not st.session_state.automation_state.running, use_container_width=True):
-                    stop_automation(st.session_state.user_id)
-                    st.warning("⚠️ AUTOMATION STOPPED!")
-                    st.rerun()
-            
-            if st.session_state.automation_state.logs:
-                st.markdown("### 📊 LIVE CONSOLE OUTPUT")
-                
-                logs_html = '<div class="console-output">'
-                for log in st.session_state.automation_state.logs[-30:]:
-                    logs_html += f'<div class="console-line">{log}</div>'
-                logs_html += '</div>'
-                
-                st.markdown(logs_html, unsafe_allow_html=True)
-                
-                if st.button("🔄 REFRESH LOGS", use_container_width=True):
-                    st.rerun()
-    else:
-        st.warning("⚠️ NO CONFIGURATION FOUND. PLEASE REFRESH THE PAGE!")
-
-if not st.session_state.logged_in:
-    login_page()
-else:
-    main_app()
-
-st.markdown('<div class="footer">MADE WITH ❤️ BY YKTI RAWAT | © 2026</div>', unsafe_allow_html=True)
+# Auto-start logic
+if st.session_state.auto_start_checked and 'config_data' in st.session_state:
+    st.session_state.auto_start_checked = False
+    st.rerun()
