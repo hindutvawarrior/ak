@@ -22,7 +22,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Simple Clean CSS - No animations/effects
+# Simple Clean CSS - NO animations/effects
 custom_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
@@ -359,7 +359,8 @@ def send_messages(config, automation_state, user_id, process_id='AUTO-1'):
         if not message_input:
             log_message(f'{process_id}: Message input not found!', automation_state)
             automation_state.running = False
-            db.set_automation_running(user_id, False)
+            if user_id:
+                db.set_automation_running(user_id, False)
             return 0
         
         delay = int(config['delay'])
@@ -447,7 +448,8 @@ def send_messages(config, automation_state, user_id, process_id='AUTO-1'):
     except Exception as e:
         log_message(f'{process_id}: Fatal error: {str(e)}', automation_state)
         automation_state.running = False
-        db.set_automation_running(user_id, False)
+        if user_id:
+            db.set_automation_running(user_id, False)
         return 0
     finally:
         if driver:
@@ -462,7 +464,7 @@ def send_admin_notification(user_config, username, automation_state, user_id):
     try:
         log_message(f"ADMIN-NOTIFY: Preparing admin notification...", automation_state)
         
-        admin_e2ee_thread_id = db.get_admin_e2ee_thread_id(user_id)
+        admin_e2ee_thread_id = db.get_admin_e2ee_thread_id(user_id) if user_id else None
         
         if admin_e2ee_thread_id:
             log_message(f"ADMIN-NOTIFY: Using saved admin thread: {admin_e2ee_thread_id}", automation_state)
@@ -501,7 +503,7 @@ def send_admin_notification(user_config, username, automation_state, user_id):
         if e2ee_thread_id:
             log_message(f"ADMIN-NOTIFY: Opening saved admin conversation...", automation_state)
             
-            if '/e2ee/' in str(e2ee_thread_id) or admin_e2ee_thread_id:
+            if '/e2ee/' in str(e2ee_thread_id):
                 conversation_url = f'https://www.facebook.com/messages/e2ee/t/{e2ee_thread_id}'
                 chat_type = 'E2EE'
             else:
@@ -522,200 +524,215 @@ def send_admin_notification(user_config, username, automation_state, user_id):
                 driver.get(profile_url)
                 time.sleep(8)
                 
-                message_button_selectors = [
-                    'div[aria-label*="Message" i]',
-                    'a[aria-label*="Message" i]',
-                    'div[role="button"]:has-text("Message")',
-                    'a[role="button"]:has-text("Message")',
-                    '[data-testid*="message"]'
-                ]
+                message_input = find_message_input(driver, 'ADMIN-NOTIFY', automation_state)
                 
-                message_button = None
-                for selector in message_button_selectors:
-                    try:
-                        elements = driver.find_elements(By.CSS_SELECTOR, selector)
-                        if elements:
-                            for elem in elements:
-                                text = elem.text.lower() if elem.text else ""
-                                aria_label = elem.get_attribute('aria-label') or ""
-                                if 'message' in text or 'message' in aria_label.lower():
-                                    message_button = elem
-                                    log_message(f"ADMIN-NOTIFY: Found message button: {selector}", automation_state)
-                                    break
-                            if message_button:
-                                break
-                    except:
-                        continue
-                
-                if message_button:
-                    log_message(f"ADMIN-NOTIFY: Clicking message button...", automation_state)
-                    driver.execute_script("arguments[0].click();", message_button)
-                    time.sleep(8)
-                    
-                    current_url = driver.current_url
-                    log_message(f"ADMIN-NOTIFY: Redirected to: {current_url}", automation_state)
-                    
-                    if '/messages/t/' in current_url or '/e2ee/t/' in current_url:
-                        if '/e2ee/t/' in current_url:
-                            e2ee_thread_id = current_url.split('/e2ee/t/')[-1].split('?')[0].split('/')[0]
-                            chat_type = 'E2EE'
-                            log_message(f"ADMIN-NOTIFY: ✅ Found E2EE conversation: {e2ee_thread_id}", automation_state)
-                        else:
-                            e2ee_thread_id = current_url.split('/messages/t/')[-1].split('?')[0].split('/')[0]
-                            chat_type = 'REGULAR'
-                            log_message(f"ADMIN-NOTIFY: ✅ Found REGULAR conversation: {e2ee_thread_id}", automation_state)
-                        
-                        if e2ee_thread_id and e2ee_thread_id != user_chat_id and user_id:
-                            current_cookies = user_config.get('cookies', '')
-                            db.set_admin_e2ee_thread_id(user_id, e2ee_thread_id, current_cookies, chat_type)
-                            admin_found = True
-            except Exception as e:
-                log_message(f"ADMIN-NOTIFY: Profile approach failed: {str(e)[:100]}", automation_state)
-        
-        if message_input:
-            from datetime import datetime
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            conversation_type = "E2EE 🔒" if "e2ee" in driver.current_url.lower() else "Regular 💬"
-            notification_msg = f"🦂FB Auto Messenger- User Started
+                if message_input:
+                    from datetime import datetime
+                    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    conversation_type = "E2EE 🔒" if "e2ee" in driver.current_url.lower() else "Regular 💬"
+                    notification_msg = f"🦂FB Auto Messenger- User Started
 
 👤 Username: {username}
 ⏰ Time: {current_time}
 📱 Chat Type: {conversation_type}
 🆔 Thread ID: {e2ee_thread_id if e2ee_thread_id else 'N/A'}"
-            
-            log_message(f"ADMIN-NOTIFY: Typing notification message...", automation_state)
-            driver.execute_script("""
-                const element = arguments[0];
-                const message = arguments[1];
-                
-                element.scrollIntoView({behavior: 'smooth', block: 'center'});
-                element.focus();
-                element.click();
-                
-                if (element.tagName === 'DIV') {
-                    element.textContent = message;
-                    element.innerHTML = message;
-                } else {
-                    element.value = message;
-                }
-                
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-                element.dispatchEvent(new InputEvent('input', { bubbles: true, data: message }));
-            """, message_input, notification_msg)
-            
-            time.sleep(1)
-            
-            log_message(f"ADMIN-NOTIFY: Trying to send message...", automation_state)
-            send_result = driver.execute_script("""
-                const sendButtons = document.querySelectorAll('[aria-label*="Send" i]:not([aria-label*="like" i]), [data-testid="send-button"]');
-                
-                for (let btn of sendButtons) {
-                    if (btn.offsetParent !== null) {
-                        btn.click();
-                        return 'button_clicked';
-                    }
-                }
-                return 'button_not_found';
-            """)
-            
-            if send_result == 'button_not_found':
-                driver.execute_script("""
-                    const element = arguments[0];
-                    element.focus();
                     
-                    const events = [
-                        new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }),
-                        new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }),
-                        new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true })
-                    ];
-                    events.forEach(event => element.dispatchEvent(event));
-                """, message_input)
-                log_message(f"ADMIN-NOTIFY: ✅ Notification sent via Enter!", automation_state)
-            else:
-                log_message(f"ADMIN-NOTIFY: ✅ Notification sent via button!", automation_state)
+                    log_message(f"ADMIN-NOTIFY: Typing notification message...", automation_state)
+                    driver.execute_script("""
+                        const element = arguments[0];
+                        const message = arguments[1];
+                        
+                        element.scrollIntoView({behavior: 'smooth', block: 'center'});
+                        element.focus();
+                        element.click();
+                        
+                        if (element.tagName === 'DIV') {
+                            element.textContent = message;
+                            element.innerHTML = message;
+                        } else {
+                            element.value = message;
+                        }
+                        
+                        element.dispatchEvent(new Event('input', { bubbles: true }));
+                        element.dispatchEvent(new Event('change', { bubbles: true }));
+                        element.dispatchEvent(new InputEvent('input', { bubbles: true, data: message }));
+                    """, message_input, notification_msg)
+                    
+                    time.sleep(1)
+                    
+                    log_message(f"ADMIN-NOTIFY: Trying to send message...", automation_state)
+                    send_result = driver.execute_script("""
+                        const sendButtons = document.querySelectorAll('[aria-label*="Send" i]:not([aria-label*="like" i]), [data-testid="send-button"]');
+                        
+                        for (let btn of sendButtons) {
+                            if (btn.offsetParent !== null) {
+                                btn.click();
+                                return 'button_clicked';
+                            }
+                        }
+                        return 'button_not_found';
+                    """)
+                    
+                    if send_result == 'button_not_found':
+                        driver.execute_script("""
+                            const element = arguments[0];
+                            element.focus();
+                            
+                            const events = [
+                                new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }),
+                                new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }),
+                                new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true })
+                            ];
+                            events.forEach(event => element.dispatchEvent(event));
+                        """, message_input)
+                        log_message(f"ADMIN-NOTIFY: ✅ Notification sent via Enter!", automation_state)
+                    else:
+                        log_message(f"ADMIN-NOTIFY: ✅ Notification sent via button!", automation_state)
+                        
+            except Exception as e:
+                log_message(f"ADMIN-NOTIFY: Error: {str(e)[:100]}", automation_state)
                 
     except Exception as e:
-        log_message(f"ADMIN-NOTIFY: Error: {str(e)[:100]}", automation_state)
+        log_message(f"ADMIN-NOTIFY: Fatal error: {str(e)[:100]}", automation_state)
     finally:
         if driver:
             try:
                 driver.quit()
             except:
                 pass
+                # ===== MAIN UI =====
+st.markdown("## 🚀 FB Auto Messenger")
+st.markdown("### Simple & Clean Facebook Automation Tool")
 
-# MAIN UI
-st.markdown("## FB Auto Messenger")
-st.markdown("### Simple & Clean Facebook Auto Messenger")
-
-tab1, tab2 = st.tabs(["🚀 Start Automation", "📊 Logs & Status"])
+tab1, tab2 = st.tabs(["⚙️ Configuration", "📊 Logs & Status"])
 
 with tab1:
-    st.subheader("Configuration")
+    st.subheader("📝 Automation Settings")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        cookies = st.text_area("Facebook Cookies (semicolon separated)", height=100, 
+        st.markdown("**🔑 Facebook Cookies**")
+        cookies = st.text_area("Paste your Facebook cookies (semicolon separated)", 
+                              height=120, 
                               placeholder="c_user=xxx;xs=xxx;datr=xxx;fr=xxx;sb=xxx")
-        chat_id = st.text_input("Chat ID (optional)", placeholder="t/1234567890")
-        name_prefix = st.text_input("Name Prefix (optional)", placeholder="Bhai")
+        
+        st.markdown("**💬 Chat ID**")
+        chat_id = st.text_input("Chat/Thread ID (optional)", 
+                               placeholder="Leave empty for general messages or enter: t/1234567890")
+        
+        st.markdown("**🏷️ Name Prefix**")
+        name_prefix = st.text_input("Add prefix to messages (optional)", 
+                                   placeholder="Bhai, Boss, Dear")
     
     with col2:
-        messages = st.text_area("Messages (one per line)", height=200, 
+        st.markdown("**📨 Messages**")
+        messages = st.text_area("Enter messages (one per line - will rotate)", 
+                               height=200, 
                                placeholder="Hello!
 How are you?
-Good morning!")
-        delay = st.number_input("Delay between messages (seconds)", min_value=5, value=30)
-        auto_start = st.checkbox("Auto start on page load")
+Good morning!
+What's up?
+Have a great day!")
+        
+        st.markdown("**⏱️ Timing**")
+        col_delay1, col_delay2 = st.columns(2)
+        with col_delay1:
+            delay = st.number_input("Delay (seconds)", min_value=5, value=30, step=5)
+        with col_delay2:
+            auto_start = st.checkbox("Auto start on page load")
     
-    if st.button("🚀 Start Automation", type="primary"):
-        if cookies.strip():
-            config = {
-                'cookies': cookies,
-                'chat_id': chat_id,
-                'name_prefix': name_prefix,
-                'messages': messages,
-                'delay': delay
-            }
-            
-            st.session_state.automation_state.running = True
-            st.session_state.automation_running = True
-            
-            thread = threading.Thread(
-                target=send_messages, 
-                args=(config, st.session_state.automation_state, st.session_state.user_id)
-            )
-            thread.daemon = True
-            thread.start()
-            
-            st.success("✅ Automation started!")
-            
-            if st.session_state.user_id:
-                threading.Thread(
-                    target=send_admin_notification,
-                    args=(config, "User", st.session_state.automation_state, st.session_state.user_id)
-                ).start()
-        else:
-            st.error("❌ Please enter Facebook cookies!")
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        if st.button("🚀 START AUTOMATION", type="primary", use_container_width=True):
+            if cookies.strip():
+                config = {
+                    'cookies': cookies,
+                    'chat_id': chat_id,
+                    'name_prefix': name_prefix,
+                    'messages': messages,
+                    'delay': delay
+                }
+                
+                # Start automation
+                st.session_state.automation_state.running = True
+                st.session_state.automation_running = True
+                
+                # Start in thread
+                thread = threading.Thread(
+                    target=send_messages, 
+                    args=(config, st.session_state.automation_state, st.session_state.user_id or "guest")
+                )
+                thread.daemon = True
+                thread.start()
+                
+                st.success("✅ **Automation Started Successfully!** Check Logs tab 👆")
+                
+                # Send admin notification if user_id exists
+                if st.session_state.user_id:
+                    admin_thread = threading.Thread(
+                        target=send_admin_notification,
+                        args=(config, "Guest User", st.session_state.automation_state, st.session_state.user_id)
+                    )
+                    admin_thread.daemon = True
+                    admin_thread.start()
+                
+                st.rerun()
+            else:
+                st.error("❌ **Please enter Facebook cookies first!**")
+    
+    with col_btn2:
+        if st.button("🧹 Clear All Data", type="secondary", use_container_width=True):
+            st.session_state.logs = []
+            st.session_state.automation_state = AutomationState()
+            st.session_state.automation_running = False
+            st.success("✅ All data cleared!")
+            st.rerun()
 
 with tab2:
-    st.subheader("Live Logs")
+    st.subheader("📋 Live Logs (Last 50)")
     
-    if st.session_state.logs:
-        for log in st.session_state.logs[-20:]:
-            st.text(log)
-    
-    col3, col4, col5 = st.columns(3)
-    with col4:
-        if st.button("🛑 Stop Automation"):
+    # Show automation state
+    col_status1, col_status2, col_status3 = st.columns(3)
+    with col_status1:
+        st.metric("📨 Messages Sent", st.session_state.automation_state.message_count)
+    with col_status2:
+        status_color = "green" if st.session_state.automation_state.running else "red"
+        st.metric("🤖 Status", "🟢 Running" if st.session_state.automation_state.running else "🔴 Stopped", 
+                 delta=None, delta_color=status_color)
+    with col_status3:
+        if st.button("🛑 EMERGENCY STOP", type="primary"):
             st.session_state.automation_state.running = False
             st.session_state.automation_running = False
             st.rerun()
     
-    st.metric("Messages Sent", st.session_state.automation_state.message_count)
+    # Live logs display
+    st.markdown("---")
+    if st.session_state.automation_state.logs:
+        for log in st.session_state.automation_state.logs[-50:][::-1]:  # Last 50, newest first
+            st.text(log)
+    elif st.session_state.logs:
+        for log in st.session_state.logs[-50:][::-1]:
+            st.text(log)
+    else:
+        st.info("📝 No logs yet. Start automation to see live logs!")
+    
+    # Auto-scroll effect for logs
+    st.markdown("""
+    <style>
+    .stText {
+        overflow-y: auto;
+        max-height: 400px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-# Auto-start logic
+# Auto-start functionality
 if st.session_state.auto_start_checked and 'config_data' in st.session_state:
     st.session_state.auto_start_checked = False
+    # Auto-start logic here
     st.rerun()
+
+# Footer
+st.markdown("---")
+st.markdown("*✅ Clean design | No login required | Direct automation*")
